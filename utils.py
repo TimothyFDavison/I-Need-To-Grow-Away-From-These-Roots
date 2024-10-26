@@ -12,7 +12,7 @@ import config
 
 def load_chords():
     """
-    Load chords from a file, if pre-saved.
+    Load chords from a file. If loading from a file fails, auto-generate chords list based on the config file.
     """
     try:
         chords = [
@@ -27,7 +27,8 @@ def load_chords():
 
 def load_graph(chords, frequencies):
     """
-    Load chords if you have them
+    Load chords graph from a file. If loading from a file fails, auto-generate graph list based on provided chords and
+    frequencies.
     """
     try:
         with open(config.graph_file, 'rb') as f:
@@ -56,8 +57,8 @@ def get_inversions(chord):
 
 def get_chords(save_chords=config.generate_intermediate_files):
     """
-
-    :return:
+    Produce a list of all possible chords in all possible inversions across all octaves specified in the config file.
+    Optionally save this list to a file.
     """
     # Generate a set of chords, organized by root
     root_chords = {}
@@ -97,13 +98,12 @@ def get_chords(save_chords=config.generate_intermediate_files):
 
 def generate_frequencies():
     """
-    Produce frequency mappings for each chord.
+    Produce frequency mappings for each note.
     """
     note_frequencies = {}
-    for octave in range(2, 6):  # C0 to B8
+    for octave in range(config.lower_octave, config.upper_octave+1):
         for i, note in enumerate(config.notes):
-            # Calculate the number of semitones from A4
-            n = (octave - 4) * 12 + (i - 9)  # i=9 corresponds to A in each octave
+            n = (octave - 4) * 12 + (i - 9)
             frequency = config.A4_freq * (2 ** (n / 12))
             note_name = f"{note}{octave}"
             note_frequencies[note_name] = round(frequency, 2)
@@ -173,7 +173,7 @@ def generate_chord_wave(frequencies, fade=config.fade, t=config.t, scaling_facto
 
 def play_base_chord(G, node):
     """
-
+    Generate waveform for a chord, retrieved from a given node in the chords graph.
     """
     inv = generate_chord_wave(G.nodes[node]["frequencies"])
     play_obj = sa.play_buffer(inv, 1, 2, 44100)
@@ -182,7 +182,8 @@ def play_base_chord(G, node):
 
 def play_supplement(G, current_node, duration=config.duration):
     """
-
+    Play a single note to supplement the base chord. Duration, pitch, repetition subject to variables in the
+    config file.
     """
     # Initial pause to allow base chord to sound
     start_time = time.time()
