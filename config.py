@@ -4,7 +4,7 @@ import numpy as np
 # Generate or use pre-saved files
 use_existing_files = False
 generate_intermediate_files = False
-chords_file = "chorasdfds.txt"
+chords_file = "chords.txt"
 graph_file = "chords_graph.pkl"
 log_to_file = False
 
