@@ -13,8 +13,8 @@ sample_rate = 44100
 duration = 8
 t = np.linspace(0, duration, int(sample_rate * duration), False)
 fade = True
-attack_time = duration * .2  # fade in
-release_time = duration * .2  # fade out
+attack_time = duration * .1  # fade in
+release_time = duration * .1  # fade out
 
 # Base chord settings
 A4_freq = 440.0
@@ -23,12 +23,12 @@ upper_octave = 4
 
 # Supplemental note settings
 lower_length_supplemental = .04
-upper_length_supplemental = .8
+upper_length_supplemental = 1.5
 lower_octave_supplemental = -2
 upper_octave_supplemental = 3
-repetition_length_threshold = .1
-lower_repetition_bound = 2
-upper_repetition_bound = 4
+repetition_length_threshold = .4
+lower_repetition_bound = 3
+upper_repetition_bound = 6
 scaling_factor = .3
 pause_lower_bound = 1
 pause_upper_bound = duration / 2

@@ -1,5 +1,5 @@
 import random
-import threading
+from multiprocessing import Process
 
 import config
 import utils
@@ -18,14 +18,14 @@ if __name__ == '__main__':
     while True:
 
         # Create concurrently running audio threads
-        thread1 = threading.Thread(target=utils.play_base_chord, args=(graph, current_node,))
-        thread2 = threading.Thread(target=utils.play_supplement, args=(graph, current_node,))
+        process1 = Process(target=utils.play_base_chord, args=(graph, current_node,))
+        process2 = Process(target=utils.play_supplement, args=(graph, current_node,))
 
-        # Manage threads
-        thread1.start()
-        thread2.start()
-        thread1.join()
-        thread2.join()
+        # Manage processes
+        process1.start()
+        process2.start()
+        process1.join()
+        process2.join()
 
         # Select new node
         random_edge = random.choice(list(graph.edges(current_node)))

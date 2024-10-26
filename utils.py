@@ -184,7 +184,13 @@ def play_supplement(G, current_node, duration=config.duration):
     """
 
     """
+    # Initial pause to allow base chord to sound
     start_time = time.time()
+    wait_time = random.uniform(config.pause_lower_bound, config.pause_upper_bound)
+    if wait_time > duration - (time.time() - start_time):
+        return
+    time.sleep(wait_time)
+
     while time.time() - start_time < duration:
 
         # Create a waveform envelope, set repetition depending on waveform length
@@ -206,4 +212,6 @@ def play_supplement(G, current_node, duration=config.duration):
 
         # Pause for a random amount of time
         wait_time = random.uniform(config.pause_lower_bound, config.pause_upper_bound)
+        if wait_time > duration - (time.time() - start_time):
+            return
         time.sleep(wait_time)
