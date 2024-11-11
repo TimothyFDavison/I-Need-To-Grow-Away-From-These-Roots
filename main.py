@@ -8,13 +8,19 @@ import utils
 if __name__ == '__main__':
 
     # Get chords, chord graph. Will auto-generate if chords/graph file throws errors.
-    chords = utils.load_chords() if config.use_existing_files else utils.get_chords()
-    frequencies = utils.generate_frequencies()
-    graph = utils.load_graph(chords, frequencies) if config.use_existing_files else (
-        utils.generate_graph(chords, frequencies))
+    if config.use_existing_files:
+        chords = utils.load_chords()
+        frequencies = utils.generate_frequencies()
+        graph = utils.load_graph(chords, frequencies)
+    else:
+        chords = utils.get_chords()
+        frequencies = utils.generate_frequencies()
+        graph = utils.generate_graph(chords, frequencies)
 
     # Select an initial node, initiate the playback loop
+    utils.logger.info("Initiating generative loop...")
     current_node = random.choice(list(graph.nodes()))
+    audio_segments = []
     while True:
 
         # Create concurrently running audio threads

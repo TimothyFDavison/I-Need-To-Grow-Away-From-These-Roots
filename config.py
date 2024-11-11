@@ -4,7 +4,7 @@ import numpy as np
 # Generate or use pre-saved files
 use_existing_files = False
 generate_intermediate_files = False  # will save chords list, network graph as files
-chords_file = "chords.txt"
+chords_file = "chords.json"
 graph_file = "chords_graph.pkl"
 
 # Audio settings

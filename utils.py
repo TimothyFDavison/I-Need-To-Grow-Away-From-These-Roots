@@ -1,4 +1,6 @@
 from itertools import combinations
+import json
+import logging
 import random
 import time
 
@@ -10,17 +12,25 @@ import simpleaudio as sa
 import config
 
 
+# Set up logging infrastructure
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+
+
 def load_chords():
     """
     Load chords from a file. If loading from a file fails, auto-generate chords list based on the config file.
     """
     try:
-        chords = [
-            x.split() for x in open(config.chords_file, 'r').readlines()
-        ]
+        logger.info(f"Loading chords from {config.chords_file}...")
+        chords = json.load(open(config.chords_file, 'r'))
     except Exception as e:
-        print(f"Could not open chords file: {e}")
-        print("Proceeding with auto-generation of chords")
+        logger.warn(f"Could not open chords file: {e}")
+        logger.info("Proceeding with auto-generation of chords")
         return get_chords()
     return chords
 
@@ -31,11 +41,12 @@ def load_graph(chords, frequencies):
     frequencies.
     """
     try:
+        logger.info(f"Loading graph from {config.graph_file}...")
         with open(config.graph_file, 'rb') as f:
             G = pickle.load(f)
     except Exception as e:
-        print(f"Could not open graph file: {e}")
-        print("Proceeding with auto-generation of graph")
+        logger.warn(f"Could not open graph file: {e}")
+        logger.info("Proceeding with auto-generation of graph")
         return generate_graph(chords, frequencies)
     return G
 
@@ -60,6 +71,9 @@ def get_chords(save_chords=config.generate_intermediate_files):
     Produce a list of all possible chords in all possible inversions across all octaves specified in the config file.
     Optionally save this list to a file.
     """
+    # Log progress
+    logger.info(f"Generating new chord set...")
+
     # Generate a set of chords, organized by root
     root_chords = {}
     for root in config.notes:
@@ -70,8 +84,9 @@ def get_chords(save_chords=config.generate_intermediate_files):
             root_chords[chord_name] = inversions
 
     # Expand the list of chords to cover specific octaves
-    all_chords = []
+    all_chords = {}
     for chord_name, inversions in root_chords.items():
+        all_chords[chord_name] = []
         for i, chord in enumerate(inversions):
             for octave in range(config.lower_octave, config.upper_octave):
                 new_entry = []
@@ -80,18 +95,16 @@ def get_chords(save_chords=config.generate_intermediate_files):
                         new_entry.append(note[:-1] + f"{octave + 1}")
                     else:
                         new_entry.append(note + f"{octave}")
-                all_chords.append(new_entry)
+                all_chords[chord_name].append(new_entry)
 
     # Optionally save the chords to a file for reuse
     if save_chords:
         try:
             with open(config.chords_file, "w") as f:
-                for chord in all_chords:
-                    f.write(" ".join(chord))
-                    f.write("\n")
+                json.dump(all_chords, f, indent=4)
         except Exception as e:
-            print(f"Could not save chords file: {e}")
-            print("Skipping...")
+            logger.warn(f"Could not save chords file: {e}")
+            logger.info("Skipping...")
             return get_chords()
     return all_chords
 
@@ -115,17 +128,22 @@ def generate_graph(chords, note_frequencies, save_graph=config.generate_intermed
     Produce a NetworkX graph in which nodes are chords, and edges are assigned to any two chords which share all but
     one note.
     """
+    # Log progress
+    logger.info(f"Generating new chords graph...")
+
     # Create chord graph
     G = nx.Graph()
 
     # Generate chord labels
     i = 0
-    for chord in chords:
-        G.add_node(
-            f"chord_{i}",
-            notes=chord,
-            frequencies=[note_frequencies[x] for x in chord]
-        )
+    for chord_name in chords:
+        for chord in chords[chord_name]:
+            G.add_node(
+                f"chord_{i}",
+                chord=chord_name,
+                notes=chord,
+                frequencies=[note_frequencies[x] for x in chord]
+            )
         i += 1
 
     # Add edges based on the shared note criteria
@@ -134,18 +152,18 @@ def generate_graph(chords, note_frequencies, save_graph=config.generate_intermed
         chord2_data = G.nodes[chord2]
         chord1_roots = [x[:-1] for x in chord1_data["notes"]]
         chord2_roots = [x[:-1] for x in chord2_data["notes"]]
-        non_intersection = set(chord1_roots) ^ set(chord2_roots)
+        non_intersection = set(chord1_roots) ^ set(chord2_roots)  # allow less stringent edge conditions?
         if len(non_intersection) == 1:
             G.add_edge(chord1, chord2)
 
+    # Optionally save graph to a file for reuse
     if save_graph:
         try:
             with open(config.graph_file, 'wb') as f:
                 pickle.dump(G, f)
         except Exception as e:
-            print(f"Could not save graphs file: {e}")
-            print("Skipping...")
-            return get_chords()
+            logger.warn(f"Could not save graphs file: {e}")
+            logger.info("Skipping...")
     return G
 
 
