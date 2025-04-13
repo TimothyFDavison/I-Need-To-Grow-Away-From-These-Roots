@@ -8,7 +8,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from sklearn.manifold import MDS
 
-import trinity_config
+from . import trinity_config
 
 
 # Set up logging infrastructure
@@ -164,6 +164,7 @@ def generate_trinity_graph(chords, note_frequencies, save_graph=trinity_config.t
 
     return network
 
+
 def render_graph(network, vector_coordinates):
     """
     Generate plotly graph.
@@ -213,7 +214,7 @@ def render_graph(network, vector_coordinates):
             xaxis=dict(title='', showticklabels=False, color="white", showgrid=False, zeroline=False),
             yaxis=dict(title='', showticklabels=False, color="white", showgrid=False, zeroline=False),
             zaxis=dict(title='', showticklabels=False, color="white", showgrid=False, zeroline=False),
-            bgcolor="white"sfghn
+            bgcolor="white"
         ),
         showlegend=False
     )

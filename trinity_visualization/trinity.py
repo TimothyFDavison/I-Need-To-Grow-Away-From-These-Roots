@@ -1,6 +1,6 @@
 import config
-import trinity_utils
 import utils
+from . import trinity_utils
 
 
 if __name__ == "__main__":
